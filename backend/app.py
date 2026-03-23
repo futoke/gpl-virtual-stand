@@ -111,9 +111,19 @@ def make_default_layout() -> List[List[Dict[str, int]]]:
             row.append({"type": MODULE_EMPTY, "dir": 0})
         cell_state.append(row)
 
-    cell_state[2][2]["type"] = MODULE_CONVEYOR
-    cell_state[2][3]["type"] = MODULE_ROTARY
-    cell_state[2][4]["type"] = MODULE_PROCESS
+    for col in range(0, 5):
+        cell_state[5][col] = {"type": MODULE_CONVEYOR, "dir": 1}
+
+    cell_state[5][5] = {"type": MODULE_PROCESS, "dir": 0}
+    cell_state[5][6] = {"type": MODULE_CONVEYOR, "dir": 1}
+    cell_state[5][7] = {"type": MODULE_CONVEYOR, "dir": 1}
+    cell_state[5][8] = {"type": MODULE_ROTARY, "dir": 2}
+
+    for row in range(1, 5):
+        cell_state[row][8] = {"type": MODULE_CONVEYOR, "dir": 2}
+
+    cell_state[0][8] = {"type": MODULE_ROTARY, "dir": 2}
+
     return cell_state
 
 
@@ -229,6 +239,15 @@ APP_STATE = create_initial_state()
 def object_lift_state(row: int, col: int) -> str:
     module_type = APP_STATE["cell_state"][row][col]["type"]
     return "on_process" if module_type == MODULE_PROCESS else "on_field"
+
+
+def discard_active_field_object() -> None:
+    obj_id = APP_STATE["active_field_object_id"]
+    if obj_id is not None:
+        APP_STATE["objects"].pop(obj_id, None)
+
+    APP_STATE["active_field_object_id"] = None
+    APP_STATE["field_object_cell"] = None
 
 
 def crane_at_io_zone(side: str, crane: Dict) -> bool:
@@ -434,6 +453,9 @@ def get_state() -> AppStateSnapshot:
 
 @app.post("/api/mode", response_model=AppStateSnapshot, tags=["state"])
 def set_mode(payload: ModeRequest) -> AppStateSnapshot:
+    if payload.edit_mode:
+        discard_active_field_object()
+
     APP_STATE["edit_mode"] = payload.edit_mode
     return build_snapshot()
 
