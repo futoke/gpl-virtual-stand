@@ -92,6 +92,17 @@ class MoveFieldObjectRequest(BaseModel):
     direction: str = Field(..., pattern="^(up|down|left|right)$")
 
 
+class RotaryDirectionRequest(BaseModel):
+    r: int = Field(..., ge=0, lt=GRID_ROWS)
+    c: int = Field(..., ge=0, lt=GRID_COLS)
+    direction: int = Field(..., ge=0, le=3)
+
+
+class RandomizeWarehousesRequest(BaseModel):
+    count_per_side: int = Field(18, ge=1, le=GRID_ROWS * WAREHOUSE_LEVELS)
+    seed: Optional[int] = None
+
+
 def make_default_layout() -> List[List[Dict[str, int]]]:
     cell_state: List[List[Dict[str, int]]] = []
     for _ in range(GRID_ROWS):
@@ -136,23 +147,9 @@ def create_initial_state() -> Dict:
         "objects": {},
     }
 
-    rng = random.Random(42)
-    prefill_ratio = 0.45
-    for side in ("left", "right"):
-        slots = list(state["warehouses"]["%s_slots" % side])
-        rng.shuffle(slots)
-        count = int(len(slots) * prefill_ratio)
-        for slot in slots[:count]:
-            obj_id = state["next_obj_id"]
-            state["next_obj_id"] += 1
-            state["objects"][obj_id] = {"id": obj_id, "color": rng.choice(PALETTE)}
-            slot["occupied_by"] = obj_id
+    populate_random_warehouses(state, count_per_side=int(len(state["warehouses"]["left_slots"]) * 0.45), seed=42)
 
     return state
-
-
-APP_STATE = create_initial_state()
-
 
 app = FastAPI(
     title="GPL Virtual Stand API",
@@ -195,6 +192,38 @@ def current_io_side() -> str:
 
 def clamp(value: int, low: int, high: int) -> int:
     return max(low, min(high, value))
+
+
+def populate_random_warehouses(state: Dict, count_per_side: int, seed: Optional[int] = None) -> None:
+    rng = random.Random(seed)
+
+    state["next_obj_id"] = 1
+    state["objects"] = {}
+    state["io_stacks"] = {"left": [], "right": []}
+    state["active_field_object_id"] = None
+    state["field_object_cell"] = None
+    state["cranes"]["left"]["holding_object_id"] = None
+    state["cranes"]["right"]["holding_object_id"] = None
+    state["cranes"]["left"]["row"] = 0
+    state["cranes"]["left"]["level"] = 0
+    state["cranes"]["right"]["row"] = 0
+    state["cranes"]["right"]["level"] = 0
+
+    for side in ("left", "right"):
+        slots = state["warehouses"]["%s_slots" % side]
+        for slot in slots:
+            slot["occupied_by"] = None
+
+        shuffled_slots = list(slots)
+        rng.shuffle(shuffled_slots)
+        for slot in shuffled_slots[:count_per_side]:
+            obj_id = state["next_obj_id"]
+            state["next_obj_id"] += 1
+            state["objects"][obj_id] = {"id": obj_id, "color": rng.choice(PALETTE)}
+            slot["occupied_by"] = obj_id
+
+
+APP_STATE = create_initial_state()
 
 
 def object_lift_state(row: int, col: int) -> str:
@@ -306,6 +335,13 @@ def move_field_object(direction: str) -> None:
     APP_STATE["field_object_cell"] = {"r": next_row, "c": next_col}
 
 
+def set_rotary_direction(row: int, col: int, direction: int) -> None:
+    cell = APP_STATE["cell_state"][row][col]
+    if cell["type"] != MODULE_ROTARY:
+        raise HTTPException(status_code=409, detail="Selected cell is not a rotary module.")
+    cell["dir"] = direction
+
+
 def sync_layout(payload: LayoutSyncRequest) -> None:
     if len(payload.cell_state) != GRID_ROWS or any(len(row) != GRID_COLS for row in payload.cell_state):
         raise HTTPException(status_code=422, detail="Unexpected grid size.")
@@ -405,6 +441,20 @@ def set_mode(payload: ModeRequest) -> AppStateSnapshot:
 @app.post("/api/layout/sync", response_model=AppStateSnapshot, tags=["layout"])
 def sync_client_layout(payload: LayoutSyncRequest) -> AppStateSnapshot:
     sync_layout(payload)
+    return build_snapshot()
+
+
+@app.post("/api/layout/rotary/set-direction", response_model=AppStateSnapshot, tags=["layout"])
+def set_rotary(payload: RotaryDirectionRequest) -> AppStateSnapshot:
+    ensure_not_in_edit_mode()
+    set_rotary_direction(payload.r, payload.c, payload.direction)
+    return build_snapshot()
+
+
+@app.post("/api/scenario/randomize-warehouses", response_model=AppStateSnapshot, tags=["scenario"])
+def randomize_warehouses(payload: RandomizeWarehousesRequest) -> AppStateSnapshot:
+    ensure_not_in_edit_mode()
+    populate_random_warehouses(APP_STATE, payload.count_per_side, payload.seed)
     return build_snapshot()
 
 

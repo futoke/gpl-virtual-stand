@@ -3,25 +3,72 @@ import { MODULE } from "../scene/constants.js";
 export function initUI(state, actions) {
   const ui = document.getElementById("ui");
   ui.innerHTML = `
-    <div class="ui-header">
-      <div><b>MVP макет</b> (6x9 поле, склады по бокам, зоны загрузки/выгрузки)</div>
-      <button id="edit-mode-toggle" type="button" class="mode-toggle"></button>
+    <div class="panel-shell">
+      <div class="ui-header">
+        <div class="ui-title-block">
+          <div class="ui-title">Макет гибкой производственной линии</div>
+        </div>
+        <button id="edit-mode-toggle" type="button" class="mode-toggle"></button>
+      </div>
+
+      <section class="ui-card">
+        <div class="section-title">Редактирование</div>
+        <div class="tip-list">
+          <div class="tip-item"><span class="tip-label tip-label-edit">ПКМ</span><span>выбрать ячейку</span></div>
+          <div class="tip-item"><span class="tip-label tip-label-edit">ЛКМ</span><span>сменить модуль</span></div>
+        </div>
+        <div class="module-flow">
+          <span class="module-pill">Пусто</span>
+          <span class="flow-arrow">→</span>
+          <span class="module-pill module-conveyor">Конвейер</span>
+          <span class="flow-arrow">→</span>
+          <span class="module-pill module-rotary">Поворот</span>
+          <span class="flow-arrow">→</span>
+          <span class="module-pill module-process">Обработка</span>
+        </div>
+        <div class="hotkey-list compact-list">
+          <div class="hotkey-item">
+            <div class="hotkey-keys"><kbd>R</kbd></div>
+            <div class="hotkey-desc">поворот модуля</div>
+          </div>
+          <div class="hotkey-item">
+            <div class="hotkey-keys"><kbd>Del</kbd></div>
+            <div class="hotkey-desc">очистка ячейки</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ui-card">
+        <div class="section-title">API-клавиши</div>
+        <div class="hotkey-list compact-list">
+          <div class="hotkey-item"><div class="hotkey-keys"><kbd>Q</kbd><kbd>E</kbd></div><div class="hotkey-desc">выбрать кран</div></div>
+          <div class="hotkey-item"><div class="hotkey-keys"><kbd>A</kbd><kbd>D</kbd></div><div class="hotkey-desc">по рядам</div></div>
+          <div class="hotkey-item"><div class="hotkey-keys"><kbd>W</kbd><kbd>S</kbd></div><div class="hotkey-desc">по уровням</div></div>
+          <div class="hotkey-item"><div class="hotkey-keys"><kbd>F</kbd></div><div class="hotkey-desc">забрать/положить на стеллаж</div></div>
+          <div class="hotkey-item"><div class="hotkey-keys"><kbd>G</kbd></div><div class="hotkey-desc">забрать/положить в зону загрузки/выгрузки</div></div>
+          <div class="hotkey-item"><div class="hotkey-keys"><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></div><div class="hotkey-desc">объект на поле</div></div>
+        </div>
+      </section>
+
+      <section class="ui-card ui-controls-card">
+        <div class="field-group">
+          <label for="stack-capacity">Объем зоны загрузки/выгрузки</label>
+          <input id="stack-capacity" type="number" min="1" max="12" step="1" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Активная зона загрузки/выгрузки</div>
+          <div class="ui-zone-controls">
+            <button id="io-zone-left" type="button">Левая</button>
+            <button id="io-zone-right" type="button">Правая</button>
+            <button id="io-zone-launch" type="button" class="launch-button">Объект на поле</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="ui-note">
+        В режиме API вся логика идет через FastAPI.
+      </div>
     </div>
-    <div class="row">ПКМ по ячейке: выделить для редактирования</div>
-    <div class="row">ЛКМ по выделенной ячейке: <kbd>Пусто</kbd> -> <kbd>Конвейер</kbd> -> <kbd>Поворотный</kbd> -> <kbd>Обработка</kbd> -> ...</div>
-    <div class="row">Редактирование: <kbd>R</kbd> повернуть модуль, <kbd>Del</kbd> очистить ячейку</div>
-    <div class="row">API-управление: <kbd>Q/E</kbd> выбрать кран, <kbd>W/S</kbd> переместить по рядам, <kbd>A/D</kbd> по уровням, <kbd>F</kbd> склад, <kbd>G</kbd> IO, стрелки для объекта на поле</div>
-    <div class="row ui-stack-controls">
-      <label for="stack-capacity">Размер стопки</label>
-      <input id="stack-capacity" type="number" min="1" max="12" step="1" />
-    </div>
-    <div class="row ui-zone-controls">
-      <span>Активная зона IO</span>
-      <button id="io-zone-left" type="button">Левая</button>
-      <button id="io-zone-right" type="button">Правая</button>
-      <button id="io-zone-launch" type="button">Нижний на поле</button>
-    </div>
-    <div class="row muted">Операционные действия доступны только в режиме API. При выходе из edit-режима текущая раскладка поля синхронизируется с FastAPI.</div>
   `;
 
   const toggle = ui.querySelector("#edit-mode-toggle");
@@ -33,7 +80,7 @@ export function initUI(state, actions) {
   function renderControls() {
     const remoteDisabled = state.editMode || state.apiBusy;
 
-    toggle.textContent = state.editMode ? "Режим редактирования: ВКЛ" : "Режим редактирования: ВЫКЛ";
+    toggle.textContent = state.editMode ? "Edit\nON" : "Edit\nOFF";
     toggle.classList.toggle("active", state.editMode);
     toggle.disabled = !!state.apiBusy;
 
@@ -73,6 +120,8 @@ export function initUI(state, actions) {
 
 export function updateHUD(state, cranes) {
   const hud = document.getElementById("hud");
+  if (!hud) return;
+
   const { r, c } = state.selectedCell;
   const cs = state.cellState[r][c];
   const crane = cranes[state.activeCraneKey];
@@ -80,25 +129,27 @@ export function updateHUD(state, cranes) {
   const dir = ["N", "E", "S", "W"][cs.dir];
   const occ = cs.occupiedBy ? `obj#${cs.occupiedBy.id}` : "-";
   const cellLine =
-    cs.type === MODULE.ROTARY ? `${cs.type} dir=${dir} occ=${occ}` :
-    cs.type === MODULE.PROCESS ? `${cs.type} q=${cs.queue.length} busyUntil=${cs.busyUntil.toFixed(1)} occ=${occ}` :
-    cs.type === MODULE.CONVEYOR ? `${cs.type} occ=${occ}` :
+    cs.type === MODULE.ROTARY ? `${cs.type} ${dir}` :
+    cs.type === MODULE.PROCESS ? `${cs.type} q=${cs.queue.length}` :
+    cs.type === MODULE.CONVEYOR ? `${cs.type}` :
     "empty";
 
   hud.textContent =
 `mode: ${state.editMode ? "edit" : "api"}
-selected cell: r=${r} c=${c}
-cell state: ${cellLine}
+cell: r${r} c${c}
+module: ${cellLine}
+occ: ${occ}
 
-active crane: ${state.activeCraneKey}
-crane pose: row=${crane.row} level=${crane.level} holding=${crane.holding ? ("obj#" + crane.holding.id) : "-"}
+crane: ${state.activeCraneKey}
+pose: r${crane.row} l${crane.level}
+hold: ${crane.holding ? `obj#${crane.holding.id}` : "-"}
 
-active io zone: ${state.activeIOZone}
-field object: ${state.activeFieldObject ? `obj#${state.activeFieldObject.id}` : "-"}
-stack capacity: ${state.stackCapacity}
-io left: ${state.ioStacks.left.map((o) => o.id).join(", ") || "-"}
-io right: ${state.ioStacks.right.map((o) => o.id).join(", ") || "-"}
-objects total: ${state.objects.size}
-api busy: ${state.apiBusy ? "yes" : "no"}
-api error: ${state.apiError || "-"}`;
+io: ${state.activeIOZone}
+field: ${state.activeFieldObject ? `obj#${state.activeFieldObject.id}` : "-"}
+stack: ${state.stackCapacity}
+left: ${state.ioStacks.left.map((o) => o.id).join(", ") || "-"}
+right: ${state.ioStacks.right.map((o) => o.id).join(", ") || "-"}
+objects: ${state.objects.size}
+api: ${state.apiBusy ? "busy" : "ready"}
+error: ${state.apiError || "-"}`;
 }

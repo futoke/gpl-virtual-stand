@@ -19,6 +19,7 @@ const { floor, gridW, gridH } = buildFloorAndGrid(scene);
 const state = createState();
 state.apiBusy = false;
 state.apiError = null;
+state.apiPolling = false;
 
 // Selection frame
 const selectionPoints = [
@@ -75,6 +76,23 @@ async function executeApiAction(action) {
   setApiState({ busy: false, error: null });
 }
 
+async function pollServerState() {
+  if (state.editMode || state.apiBusy || state.apiPolling) return;
+
+  state.apiPolling = true;
+  try {
+    const snapshot = await fetchServerState();
+    await applySnapshot(snapshot);
+    if (state.apiError) {
+      setApiState({ busy: false, error: null });
+    }
+  } catch (error) {
+    setApiState({ busy: false, error: `Polling failed: ${error.message}` });
+  } finally {
+    state.apiPolling = false;
+  }
+}
+
 async function toggleEditMode() {
   if (state.editMode) {
     await executeApiAction(async () => {
@@ -117,6 +135,9 @@ attachInput({
 });
 
 await executeApiAction(() => fetchServerState());
+window.setInterval(() => {
+  void pollServerState();
+}, 400);
 
 const clock = new THREE.Clock();
 
