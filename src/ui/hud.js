@@ -1,15 +1,16 @@
 import { MODULE } from "../scene/constants.js";
 
-export function initUI(state) {
+export function initUI(state, actions) {
   const ui = document.getElementById("ui");
   ui.innerHTML = `
     <div class="ui-header">
-      <div><b>MVP макет</b> (6×9 поле, склады по бокам, зоны загрузки/выгрузки)</div>
+      <div><b>MVP макет</b> (6x9 поле, склады по бокам, зоны загрузки/выгрузки)</div>
       <button id="edit-mode-toggle" type="button" class="mode-toggle"></button>
     </div>
     <div class="row">ПКМ по ячейке: выделить для редактирования</div>
-    <div class="row">ЛКМ по выделенной ячейке: <kbd>Пусто</kbd> → <kbd>Конвейер</kbd> → <kbd>Поворотный</kbd> → <kbd>Обработка</kbd> → …</div>
-    <div class="row">Выделенная ячейка: <kbd>R</kbd> повернуть (конвейер/поворотный), <kbd>Del</kbd> очистить</div>
+    <div class="row">ЛКМ по выделенной ячейке: <kbd>Пусто</kbd> -> <kbd>Конвейер</kbd> -> <kbd>Поворотный</kbd> -> <kbd>Обработка</kbd> -> ...</div>
+    <div class="row">Редактирование: <kbd>R</kbd> повернуть модуль, <kbd>Del</kbd> очистить ячейку</div>
+    <div class="row">API-управление: <kbd>Q/E</kbd> выбрать кран, <kbd>W/S</kbd> переместить по рядам, <kbd>A/D</kbd> по уровням, <kbd>F</kbd> склад, <kbd>G</kbd> IO, стрелки для объекта на поле</div>
     <div class="row ui-stack-controls">
       <label for="stack-capacity">Размер стопки</label>
       <input id="stack-capacity" type="number" min="1" max="12" step="1" />
@@ -20,54 +21,54 @@ export function initUI(state) {
       <button id="io-zone-right" type="button">Правая</button>
       <button id="io-zone-launch" type="button">Нижний на поле</button>
     </div>
-    <div class="row">Кран: <kbd>Q</kbd>/<kbd>E</kbd> лев/прав стеллаж, <kbd>W/S</kbd> вверх/вниз, <kbd>A/D</kbd> влево/вправо, <kbd>F</kbd> взять/положить со стеллажа, <kbd>G</kbd> обмен с IO-стеком</div>
-    <div class="row">Объект на поле: <kbd>←↑→↓</kbd> перемещение по ячейкам; из соседней с IO ячейки выведите его за границу поля, чтобы вернуть в стопку снизу</div>
-    <div class="row muted">Вне режима редактирования локальные действия отключены: остаётся только удалённое управление через API.</div>
+    <div class="row muted">Операционные действия доступны только в режиме API. При выходе из edit-режима текущая раскладка поля синхронизируется с FastAPI.</div>
   `;
 
   const toggle = ui.querySelector("#edit-mode-toggle");
-
   const stackCapacityInput = ui.querySelector("#stack-capacity");
   const leftZoneButton = ui.querySelector("#io-zone-left");
   const rightZoneButton = ui.querySelector("#io-zone-right");
   const launchButton = ui.querySelector("#io-zone-launch");
 
-  function renderToggle() {
+  function renderControls() {
+    const remoteDisabled = state.editMode || state.apiBusy;
+
     toggle.textContent = state.editMode ? "Режим редактирования: ВКЛ" : "Режим редактирования: ВЫКЛ";
     toggle.classList.toggle("active", state.editMode);
+    toggle.disabled = !!state.apiBusy;
+
     stackCapacityInput.value = String(state.stackCapacity);
+    stackCapacityInput.disabled = remoteDisabled;
+
     leftZoneButton.classList.toggle("active", state.activeIOZone === "left");
     rightZoneButton.classList.toggle("active", state.activeIOZone === "right");
-    launchButton.disabled = !state.editMode;
+    leftZoneButton.disabled = remoteDisabled;
+    rightZoneButton.disabled = remoteDisabled;
+    launchButton.disabled = remoteDisabled;
   }
 
-  toggle.addEventListener("click", () => {
-    state.editMode = !state.editMode;
-    renderToggle();
+  toggle.addEventListener("click", async () => {
+    await actions.onToggleEditMode?.();
   });
 
-  leftZoneButton.addEventListener("click", () => {
-    state.activeIOZone = "left";
-    renderToggle();
+  leftZoneButton.addEventListener("click", async () => {
+    await actions.onSelectIOZone?.("left");
   });
 
-  rightZoneButton.addEventListener("click", () => {
-    state.activeIOZone = "right";
-    renderToggle();
+  rightZoneButton.addEventListener("click", async () => {
+    await actions.onSelectIOZone?.("right");
   });
 
-  launchButton.addEventListener("click", () => {
-    window.dispatchEvent(new CustomEvent("io-launch-request"));
+  launchButton.addEventListener("click", async () => {
+    await actions.onLaunchIO?.();
   });
 
-  stackCapacityInput.addEventListener("change", () => {
-    const nextCapacity = Number(stackCapacityInput.value);
-    const currentMax = Math.max(state.ioStacks.left.length, state.ioStacks.right.length, 1);
-    state.stackCapacity = Math.max(currentMax, Math.min(12, Math.floor(nextCapacity || currentMax)));
-    renderToggle();
+  stackCapacityInput.addEventListener("change", async () => {
+    await actions.onSetStackCapacity?.(Number(stackCapacityInput.value));
   });
 
-  renderToggle();
+  state.renderUI = renderControls;
+  renderControls();
 }
 
 export function updateHUD(state, cranes) {
@@ -76,7 +77,7 @@ export function updateHUD(state, cranes) {
   const cs = state.cellState[r][c];
   const crane = cranes[state.activeCraneKey];
 
-  const dir = ["N","E","S","W"][cs.dir];
+  const dir = ["N", "E", "S", "W"][cs.dir];
   const occ = cs.occupiedBy ? `obj#${cs.occupiedBy.id}` : "-";
   const cellLine =
     cs.type === MODULE.ROTARY ? `${cs.type} dir=${dir} occ=${occ}` :
@@ -90,12 +91,14 @@ selected cell: r=${r} c=${c}
 cell state: ${cellLine}
 
 active crane: ${state.activeCraneKey}
-crane pose: row=${crane.row} level=${crane.level} holding=${crane.holding ? ("obj#"+crane.holding.id) : "-"}
+crane pose: row=${crane.row} level=${crane.level} holding=${crane.holding ? ("obj#" + crane.holding.id) : "-"}
 
 active io zone: ${state.activeIOZone}
 field object: ${state.activeFieldObject ? `obj#${state.activeFieldObject.id}` : "-"}
 stack capacity: ${state.stackCapacity}
-io left: ${state.ioStacks.left.map(o => o.id).join(", ") || "-"}
-io right: ${state.ioStacks.right.map(o => o.id).join(", ") || "-"}
-objects total: ${state.objects.size}`;
+io left: ${state.ioStacks.left.map((o) => o.id).join(", ") || "-"}
+io right: ${state.ioStacks.right.map((o) => o.id).join(", ") || "-"}
+objects total: ${state.objects.size}
+api busy: ${state.apiBusy ? "yes" : "no"}
+api error: ${state.apiError || "-"}`;
 }

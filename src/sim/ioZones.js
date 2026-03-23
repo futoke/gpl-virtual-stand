@@ -23,15 +23,30 @@ export function createIOZones(scene, gridW, gridH) {
   const leftX = -gridW / 2 - size / 2 - edgeGap;
   const leftZ = gridH / 2 - size / 2;
 
-  function zone(x, z, mat) {
+  function zone(x, z, mat, borderColor) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(size, 0.05, size), mat);
     m.position.set(x, 0.025, z);
     ioGroup.add(m);
-    return m;
+
+    const borderPoints = [
+      new THREE.Vector3(-size / 2, 0.04, -size / 2),
+      new THREE.Vector3(size / 2, 0.04, -size / 2),
+      new THREE.Vector3(size / 2, 0.04, size / 2),
+      new THREE.Vector3(-size / 2, 0.04, size / 2),
+      new THREE.Vector3(-size / 2, 0.04, -size / 2),
+    ];
+    const border = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(borderPoints),
+      new THREE.LineBasicMaterial({ color: borderColor, transparent: true, opacity: 0.75 })
+    );
+    border.position.set(x, 0, z);
+    ioGroup.add(border);
+
+    return { mesh: m, border };
   }
 
-  const right = zone(rightX, rightZ, matRight);
-  const left = zone(leftX, leftZ, matLeft);
+  const right = zone(rightX, rightZ, matRight, 0xff5a5a);
+  const left = zone(leftX, leftZ, matLeft, 0xff5a5a);
 
   return { right, left };
 }

@@ -1,14 +1,14 @@
 import "./style.css";
 
 import * as THREE from "three";
+import { fetchServerState, ioExchange, launchFromIO, moveCrane as moveCraneRequest, moveFieldObject, rackExchange, setActiveCrane, setActiveIOZone, setServerMode, setStackCapacity, syncServerLayout } from "./api/client.js";
 import { createSceneBasics } from "./scene/setup.js";
 import { buildFloorAndGrid, cellToWorld } from "./scene/grid.js";
 import { createState } from "./sim/state.js";
-import { makeBlock } from "./sim/objects.js";
-import { setCellModule } from "./sim/modules.js";
 import { createIOZones } from "./sim/ioZones.js";
 import { createWarehouses } from "./sim/warehouses.js";
-import { createCranes, updateCranePose } from "./sim/cranes.js";
+import { createCranes } from "./sim/cranes.js";
+import { applyServerSnapshot, serializeLayoutState } from "./sim/serverSync.js";
 import { initUI, updateHUD } from "./ui/hud.js";
 import { attachInput } from "./ui/input.js";
 import { CELL } from "./scene/constants.js";
@@ -17,7 +17,8 @@ const { scene, camera, renderer, controls } = createSceneBasics();
 const { floor, gridW, gridH } = buildFloorAndGrid(scene);
 
 const state = createState();
-initUI(state);
+state.apiBusy = false;
+state.apiError = null;
 
 // Selection frame
 const selectionPoints = [
@@ -41,10 +42,7 @@ function updateSelection() {
 }
 updateSelection();
 
-// IO zones
 const io = createIOZones(scene, gridW, gridH);
-
-// Warehouses + cranes
 const warehouses = createWarehouses(scene, gridW, gridH);
 const cranes = createCranes(scene, warehouses);
 scene.add(cranes.left.group, cranes.right.group);
@@ -55,40 +53,70 @@ leftRackHighlight.visible = false;
 rightRackHighlight.visible = false;
 scene.add(leftRackHighlight, rightRackHighlight);
 
-updateCranePose(cranes.left, gridH);
-updateCranePose(cranes.right, gridH);
-
-// Example modules
-setCellModule(scene, state, gridW, gridH, 2, 2, "conveyor");
-setCellModule(scene, state, gridW, gridH, 2, 3, "rotary");
-setCellModule(scene, state, gridW, gridH, 2, 4, "process");
-
-attachInput({ scene, renderer, camera, floor, gridW, gridH, state, cranes, warehouses, io });
-// --- Предзаполнение складов цветными объектами (как на стеллажах) ---
-function prefillRack(rack, count) {
-  const palette = [0xff4d4d, 0x4dff88, 0x4da3ff, 0xffd24d, 0xc44dff, 0x4dfff2];
-  // выберем "count" случайных слотов без повторов
-  const slots = [...rack.slots];
-  for (let i = slots.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [slots[i], slots[j]] = [slots[j], slots[i]];
-  }
-  const chosen = slots.slice(0, Math.min(count, slots.length));
-
-  for (const s of chosen) {
-    const color = palette[Math.floor(Math.random() * palette.length)];
-    const obj = makeBlock(scene, state, color);
-    obj.state = "on_shelf";
-    // положим в слот
-    obj.mesh.position.set(s.mesh.position.x, s.mesh.position.y + 0.18, s.mesh.position.z);
-    s.occupiedBy = obj;
-  }
+function setApiState({ busy = state.apiBusy, error = state.apiError }) {
+  state.apiBusy = busy;
+  state.apiError = error;
+  state.renderUI?.();
 }
 
-// по умолчанию заполняем часть ячеек, чтобы склад выглядел "живым"
-prefillRack(warehouses.leftRack,  Math.floor(warehouses.leftRack.slots.length * 0.45));
-prefillRack(warehouses.rightRack, Math.floor(warehouses.rightRack.slots.length * 0.45));
+async function applySnapshot(snapshot) {
+  applyServerSnapshot({ scene, state, gridW, gridH, warehouses, cranes, io, snapshot });
+}
 
+async function executeApiAction(action) {
+  setApiState({ busy: true, error: null });
+  try {
+    const snapshot = await action();
+    await applySnapshot(snapshot);
+  } catch (error) {
+    setApiState({ busy: false, error: error.message });
+    return;
+  }
+  setApiState({ busy: false, error: null });
+}
+
+async function toggleEditMode() {
+  if (state.editMode) {
+    await executeApiAction(async () => {
+      await syncServerLayout(serializeLayoutState(state));
+      return setServerMode(false);
+    });
+    return;
+  }
+
+  await executeApiAction(() => setServerMode(true));
+}
+
+const apiActions = {
+  selectIOZone: (side) => executeApiAction(() => setActiveIOZone(side)),
+  setStackCapacity: (capacity) => executeApiAction(() => setStackCapacity(capacity)),
+  launchIO: () => executeApiAction(() => launchFromIO()),
+  selectCrane: (side) => executeApiAction(() => setActiveCrane(side)),
+  moveCrane: (direction) => executeApiAction(() => moveCraneRequest(direction)),
+  rackExchange: () => executeApiAction(() => rackExchange()),
+  ioExchange: () => executeApiAction(() => ioExchange()),
+  moveFieldObject: (direction) => executeApiAction(() => moveFieldObject(direction)),
+};
+
+initUI(state, {
+  onToggleEditMode: toggleEditMode,
+  onSelectIOZone: apiActions.selectIOZone,
+  onSetStackCapacity: apiActions.setStackCapacity,
+  onLaunchIO: apiActions.launchIO,
+});
+
+attachInput({
+  scene,
+  renderer,
+  camera,
+  floor,
+  gridW,
+  gridH,
+  state,
+  apiActions,
+});
+
+await executeApiAction(() => fetchServerState());
 
 const clock = new THREE.Clock();
 
@@ -109,8 +137,12 @@ function animate() {
   cranes.right.mast.material.emissive.setHex(rightActive ? 0x001133 : 0x000000);
   leftRackHighlight.visible = leftActive;
   rightRackHighlight.visible = rightActive;
-  io.left.material.emissive.setHex(leftIOActive ? 0x1d1d1d : 0x000000);
-  io.right.material.emissive.setHex(rightIOActive ? 0x0f2618 : 0x000000);
+  io.left.mesh.material.emissive.setHex(leftIOActive ? 0x3a0909 : 0x000000);
+  io.right.mesh.material.emissive.setHex(rightIOActive ? 0x3a0909 : 0x000000);
+  io.left.border.material.color.setHex(leftIOActive ? 0xff2a2a : 0xff6b6b);
+  io.right.border.material.color.setHex(rightIOActive ? 0xff2a2a : 0xff6b6b);
+  io.left.border.material.opacity = leftIOActive ? 1 : 0.8;
+  io.right.border.material.opacity = rightIOActive ? 1 : 0.8;
 
   updateHUD(state, cranes);
   renderer.render(scene, camera);
