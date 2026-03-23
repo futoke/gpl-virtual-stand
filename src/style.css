@@ -1,0 +1,68 @@
+html, body { height: 100%; margin: 0; overflow: hidden; background:#0b0e14; }
+canvas { display:block; }
+
+#ui {
+  position: fixed; top: 12px; left: 12px; z-index: 10;
+  color: #e8eefc; font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: rgba(12,16,26,.7); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px; padding: 10px 12px; width: 380px;
+  backdrop-filter: blur(6px);
+}
+#ui b { color: #fff; }
+#ui .row { margin-top: 8px; opacity: .95; }
+#ui kbd {
+  display:inline-block; padding:2px 6px; border-radius:6px;
+  border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06);
+  font: 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+#hud {
+  position: fixed; right: 12px; top: 12px; z-index: 10;
+  color:#d7e3ff; font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: rgba(12,16,26,.55); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px; padding: 10px 12px; width: 360px; white-space: pre;
+  backdrop-filter: blur(6px);
+}
+
+#ui .ui-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+#ui .muted { opacity:.7; }
+#ui .mode-toggle {
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);
+  color:#e8eefc;
+  border-radius:8px;
+  padding:6px 10px;
+  cursor:pointer;
+  font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+#ui .mode-toggle.active {
+  background:rgba(76, 175, 80, .18);
+  border-color:rgba(76, 175, 80, .45);
+  color:#dff5e3;
+}
+
+#ui .ui-stack-controls { display:flex; align-items:center; gap:10px; }
+#ui .ui-stack-controls label { white-space:nowrap; }
+#ui .ui-stack-controls input {
+  width:72px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);
+  color:#e8eefc;
+  border-radius:8px;
+  padding:6px 8px;
+}
+
+#ui .ui-zone-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+#ui .ui-zone-controls button {
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);
+  color:#e8eefc;
+  border-radius:8px;
+  padding:6px 10px;
+  cursor:pointer;
+}
+#ui .ui-zone-controls button.active {
+  background:rgba(110, 193, 255, .18);
+  border-color:rgba(110, 193, 255, .45);
+}
+#ui .ui-zone-controls button:disabled { opacity:.5; cursor:not-allowed; }
