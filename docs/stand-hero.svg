@@ -1,0 +1,90 @@
+<svg width="1280" height="720" viewBox="0 0 1280 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1280" height="720" rx="32" fill="#08111F"/>
+  <rect x="32" y="32" width="1216" height="656" rx="28" fill="url(#bg)"/>
+
+  <g opacity="0.35">
+    <path d="M238 150L885 276" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M212 215L859 341" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M186 280L833 406" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M160 345L807 471" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M134 410L781 536" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M108 475L755 601" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M290 118L198 510" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M388 138L296 530" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M486 158L394 550" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M584 178L492 570" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M682 198L590 590" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M780 218L688 610" stroke="#1D4ED8" stroke-width="2"/>
+    <path d="M878 238L786 630" stroke="#1D4ED8" stroke-width="2"/>
+  </g>
+
+  <g>
+    <rect x="76" y="180" width="128" height="322" rx="18" transform="rotate(22 76 180)" fill="#111827" stroke="#F97316" stroke-width="3"/>
+    <rect x="108" y="217" width="68" height="28" rx="8" transform="rotate(22 108 217)" fill="#2563EB"/>
+    <rect x="134" y="282" width="68" height="28" rx="8" transform="rotate(22 134 282)" fill="#2563EB"/>
+    <rect x="160" y="347" width="68" height="28" rx="8" transform="rotate(22 160 347)" fill="#EF4444"/>
+    <rect x="186" y="412" width="68" height="28" rx="8" transform="rotate(22 186 412)" fill="#EF4444"/>
+  </g>
+
+  <g>
+    <rect x="1044" y="190" width="128" height="322" rx="18" transform="rotate(22 1044 190)" fill="#111827" stroke="#60A5FA" stroke-width="3"/>
+    <rect x="1082" y="225" width="68" height="28" rx="8" transform="rotate(22 1082 225)" fill="#22C55E"/>
+    <rect x="1108" y="290" width="68" height="28" rx="8" transform="rotate(22 1108 290)" fill="#22C55E"/>
+    <rect x="1134" y="355" width="68" height="28" rx="8" transform="rotate(22 1134 355)" fill="#EAB308"/>
+    <rect x="1160" y="420" width="68" height="28" rx="8" transform="rotate(22 1160 420)" fill="#EAB308"/>
+  </g>
+
+  <g>
+    <rect x="256" y="430" width="86" height="62" rx="12" transform="rotate(12 256 430)" fill="#1E3A8A" stroke="#93C5FD" stroke-width="2.5"/>
+    <path d="M280 460H320" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round"/>
+    <path d="M314 452L328 460L314 468" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="338" y="447" width="86" height="62" rx="12" transform="rotate(12 338 447)" fill="#1E3A8A" stroke="#93C5FD" stroke-width="2.5"/>
+    <path d="M362 477H402" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round"/>
+    <path d="M396 469L410 477L396 485" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="420" y="464" width="86" height="62" rx="12" transform="rotate(12 420 464)" fill="#1E3A8A" stroke="#93C5FD" stroke-width="2.5"/>
+    <path d="M444 494H484" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round"/>
+    <path d="M478 486L492 494L478 502" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="502" y="481" width="86" height="62" rx="12" transform="rotate(12 502 481)" fill="#166534" stroke="#86EFAC" stroke-width="2.5"/>
+
+    <rect x="588" y="499" width="86" height="62" rx="12" transform="rotate(12 588 499)" fill="#1E3A8A" stroke="#93C5FD" stroke-width="2.5"/>
+    <path d="M612 529H652" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round"/>
+    <path d="M646 521L660 529L646 537" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="670" y="516" width="86" height="62" rx="12" transform="rotate(12 670 516)" fill="#6D28D9" stroke="#C4B5FD" stroke-width="2.5"/>
+    <path d="M716 549L724 514" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round"/>
+    <path d="M735 523L725 509L713 522" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="737" y="429" width="86" height="62" rx="12" transform="rotate(12 737 429)" fill="#1E3A8A" stroke="#93C5FD" stroke-width="2.5"/>
+    <path d="M780 471L788 436" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round"/>
+    <path d="M799 445L789 431L777 444" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="754" y="350" width="86" height="62" rx="12" transform="rotate(12 754 350)" fill="#1E3A8A" stroke="#93C5FD" stroke-width="2.5"/>
+    <path d="M797 392L805 357" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round"/>
+    <path d="M816 366L806 352L794 365" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="771" y="271" width="86" height="62" rx="12" transform="rotate(12 771 271)" fill="#6D28D9" stroke="#C4B5FD" stroke-width="2.5"/>
+    <path d="M815 308L851 316" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round"/>
+    <path d="M842 327L857 317L845 304" stroke="#E5E7EB" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g>
+    <rect x="239" y="455" width="70" height="70" rx="10" fill="#3F2A35" stroke="#F87171" stroke-width="2"/>
+    <rect x="857" y="286" width="70" height="70" rx="10" fill="#193B28" stroke="#F97316" stroke-width="2"/>
+  </g>
+
+  <g>
+    <rect x="815" y="180" width="196" height="122" rx="18" fill="#0F172A" fill-opacity="0.88" stroke="#334155"/>
+    <text x="845" y="224" fill="#E5E7EB" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">API + 3D стенд</text>
+    <text x="845" y="258" fill="#94A3B8" font-family="Segoe UI, Arial, sans-serif" font-size="20">FastAPI • Three.js • Swagger</text>
+  </g>
+
+  <defs>
+    <linearGradient id="bg" x1="120" y1="90" x2="1136" y2="650" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="1" stop-color="#091423"/>
+    </linearGradient>
+  </defs>
+</svg>
