@@ -131,13 +131,11 @@ attachInput({
   gridW,
   gridH,
   state,
+  cranes,
+  warehouses,
+  io,
   apiActions,
 });
-
-await executeApiAction(() => fetchServerState());
-window.setInterval(() => {
-  void pollServerState();
-}, 400);
 
 const clock = new THREE.Clock();
 
@@ -169,3 +167,12 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
+
+async function bootstrap() {
+  await executeApiAction(() => fetchServerState());
+  window.setInterval(() => {
+    void pollServerState();
+  }, 400);
+}
+
+void bootstrap();

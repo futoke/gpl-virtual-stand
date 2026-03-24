@@ -78,7 +78,7 @@ export function initUI(state, actions) {
   const launchButton = ui.querySelector("#io-zone-launch");
 
   function renderControls() {
-    const remoteDisabled = state.editMode || state.apiBusy;
+    const remoteDisabled = !state.editMode || state.apiBusy;
 
     toggle.textContent = state.editMode ? "Edit\nON" : "Edit\nOFF";
     toggle.classList.toggle("active", state.editMode);
@@ -99,18 +99,39 @@ export function initUI(state, actions) {
   });
 
   leftZoneButton.addEventListener("click", async () => {
+    if (state.editMode) {
+      state.activeIOZone = "left";
+      state.renderUI?.();
+      return;
+    }
     await actions.onSelectIOZone?.("left");
   });
 
   rightZoneButton.addEventListener("click", async () => {
+    if (state.editMode) {
+      state.activeIOZone = "right";
+      state.renderUI?.();
+      return;
+    }
     await actions.onSelectIOZone?.("right");
   });
 
   launchButton.addEventListener("click", async () => {
+    if (state.editMode) {
+      window.dispatchEvent(new CustomEvent("io-launch-request"));
+      return;
+    }
     await actions.onLaunchIO?.();
   });
 
   stackCapacityInput.addEventListener("change", async () => {
+    if (state.editMode) {
+      const nextCapacity = Number(stackCapacityInput.value);
+      const currentMax = Math.max(state.ioStacks.left.length, state.ioStacks.right.length, 1);
+      state.stackCapacity = Math.max(currentMax, Math.min(12, Math.floor(nextCapacity || currentMax)));
+      state.renderUI?.();
+      return;
+    }
     await actions.onSetStackCapacity?.(Number(stackCapacityInput.value));
   });
 
