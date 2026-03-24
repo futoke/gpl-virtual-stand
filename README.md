@@ -178,13 +178,13 @@ docker build -t gpl-virtual-stand .
 ### Запуск контейнера
 
 ```powershell
-docker run --rm -p 8000:8000 gpl-virtual-stand
+docker run --rm -p 8080:8000 gpl-virtual-stand
 ```
 
 После запуска:
 
-- интерфейс: `http://127.0.0.1:8000`
-- Swagger: `http://127.0.0.1:8000/docs`
+- интерфейс: `http://127.0.0.1:8080`
+- Swagger: `http://127.0.0.1:8080/docs`
 
 ### Развертывание через Portainer из GitHub
 
@@ -223,8 +223,8 @@ docker-compose.yml
 
 После развертывания:
 
-- интерфейс будет доступен по адресу `http://<host>:8000`
-- Swagger будет доступен по адресу `http://<host>:8000/docs`
+- интерфейс будет доступен по адресу `http://<host>:8080`
+- Swagger будет доступен по адресу `http://<host>:8080/docs`
 
 ## Режимы работы стенда
 
