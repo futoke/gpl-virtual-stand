@@ -260,8 +260,6 @@ def discard_runtime_objects() -> None:
     discard_active_field_object()
 
     for side in ("left", "right"):
-        for obj_id in APP_STATE["io_stacks"][side]:
-            APP_STATE["objects"].pop(obj_id, None)
         APP_STATE["io_stacks"][side] = []
 
         holding_object_id = APP_STATE["cranes"][side]["holding_object_id"]
@@ -271,6 +269,22 @@ def discard_runtime_objects() -> None:
         APP_STATE["cranes"][side]["holding_object_id"] = None
         APP_STATE["cranes"][side]["row"] = 0
         APP_STATE["cranes"][side]["level"] = 0
+
+    # Leave only shelf objects in the server state. This guarantees that
+    # interrupted API scenarios do not keep "free" objects visually stuck
+    # in IO zones after switching back to edit mode.
+    shelf_object_ids = set()
+    for side in ("left", "right"):
+        for slot in APP_STATE["warehouses"]["%s_slots" % side]:
+            obj_id = slot["occupied_by"]
+            if obj_id is not None:
+                shelf_object_ids.add(obj_id)
+
+    APP_STATE["objects"] = {
+        obj_id: obj
+        for obj_id, obj in APP_STATE["objects"].items()
+        if obj_id in shelf_object_ids
+    }
 
 
 def crane_at_io_zone(side: str, crane: Dict) -> bool:
