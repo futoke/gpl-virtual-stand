@@ -9,7 +9,7 @@ COPY index.html vite.config.js ./
 COPY src ./src
 COPY public ./public
 
-RUN node -v && npm -v && npm run build -- --debug
+RUN node -v && npm -v && (npm run build -- --debug > /tmp/vite-build.log 2>&1 || (cat /tmp/vite-build.log && false))
 
 
 FROM python:3.11-slim AS runtime
