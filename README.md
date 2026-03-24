@@ -186,6 +186,46 @@ docker run --rm -p 8000:8000 gpl-virtual-stand
 - интерфейс: `http://127.0.0.1:8000`
 - Swagger: `http://127.0.0.1:8000/docs`
 
+### Развертывание через Portainer из GitHub
+
+В проект добавлен файл:
+
+- [docker-compose.yml](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/docker-compose.yml)
+
+Это позволяет развернуть приложение в Portainer напрямую из Git-репозитория.
+
+Порядок действий:
+
+1. Загрузите проект в GitHub-репозиторий.
+2. Убедитесь, что в репозитории есть:
+   - `Dockerfile`
+   - `docker-compose.yml`
+3. Откройте Portainer.
+4. Перейдите в `Stacks`.
+5. Нажмите `Add stack`.
+6. Укажите имя, например `gpl-virtual-stand`.
+7. Выберите вариант развертывания из `Repository`.
+8. Вставьте URL вашего GitHub-репозитория.
+9. Если нужно, укажите ветку, например `main`.
+10. В поле compose path укажите:
+
+```text
+docker-compose.yml
+```
+
+11. Нажмите `Deploy the stack`.
+
+После этого Portainer:
+
+- скачает код из GitHub
+- соберет image по `Dockerfile`
+- запустит контейнер по `docker-compose.yml`
+
+После развертывания:
+
+- интерфейс будет доступен по адресу `http://<host>:8000`
+- Swagger будет доступен по адресу `http://<host>:8000/docs`
+
 ## Режимы работы стенда
 
 У стенда есть два главных режима.
