@@ -5,7 +5,7 @@
 <h1 align="center">Макет гибкой производственной линии</h1>
 
 <p align="center">
-  <img src="./docs/stand-hero.svg" alt="Превью стенда гибкой производственной линии" width="960" />
+  <img src="./docs/stand-screenshot.png" alt="Скриншот стенда гибкой производственной линии" width="960" />
 </p>
 
 <p align="center">
