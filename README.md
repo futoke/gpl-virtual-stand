@@ -1,4 +1,45 @@
-# Макет гибкой производственной линии
+<p align="center">
+  <img src="https://img.shields.io/badge/GPL%20Virtual%20Stand-%D0%93%D0%B8%D0%B1%D0%BA%D0%B0%D1%8F%20%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F%20%D0%BB%D0%B8%D0%BD%D0%B8%D1%8F-0f172a?style=for-the-badge&logo=datadog&logoColor=white" alt="GPL Virtual Stand logo" />
+</p>
+
+<h1 align="center">Макет гибкой производственной линии</h1>
+
+<p align="center">
+  Интерактивный 3D-макет производственной линии с визуальным стендом, FastAPI backend, Swagger-документацией и внешним Python-сценарием управления.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Three.js-3D%20Scene-111827?style=flat-square&logo=threedotjs&logoColor=white" alt="Three.js" />
+  <img src="https://img.shields.io/badge/Vite-Frontend-1d4ed8?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/FastAPI-Backend-059669?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Swagger-OpenAPI-65a30d?style=flat-square&logo=swagger&logoColor=white" alt="Swagger" />
+  <img src="https://img.shields.io/badge/Docker-Deploy-2563eb?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
+</p>
+
+> В одном проекте объединены визуальный 3D-стенд, сервер состояния, API управления и внешний управляющий скрипт, который моделирует работу отдельной программы диспетчеризации.
+
+## Оглавление
+
+- [Обзор проекта](#обзор-проекта)
+- [Что умеет проект](#что-умеет-проект)
+- [Архитектура](#архитектура)
+- [Структура проекта](#структура-проекта)
+- [Требования](#требования)
+- [Установка](#установка)
+- [Быстрый старт](#быстрый-старт)
+- [Запуск в Docker](#запуск-в-docker)
+- [Режимы работы стенда](#режимы-работы-стенда)
+- [Горячие клавиши](#горячие-клавиши)
+- [Модель производственного поля](#модель-производственного-поля)
+- [FastAPI API](#fastapi-api)
+- [Swagger](#swagger)
+- [Внешний сценарный скрипт](#внешний-сценарный-скрипт)
+- [Рекомендуемый сценарий использования](#рекомендуемый-сценарий-использования)
+- [Особенности реализации](#особенности-реализации)
+- [Типовые проблемы и решения](#типовые-проблемы-и-решения)
+- [Дальнейшее развитие](#дальнейшее-развитие)
+
+## Обзор проекта
 
 Интерактивный 3D-макет гибкой производственной линии с двумя стеллажами, зонами загрузки/выгрузки, модульным полем и внешним управлением через FastAPI.
 
@@ -8,6 +49,14 @@
 - backend на `FastAPI`
 - Swagger/OpenAPI для ручного тестирования
 - внешний Python-скрипт, который управляет стендом через API как отдельная программа управления
+
+### Ключевые возможности
+
+- Редактирование производственного поля в браузере в режиме `edit`
+- Удаленное управление краном, IO-зонами и объектами через HTTP API
+- Синхронизация визуализации с серверным состоянием в режиме `api`
+- Демонстрация внешней управляющей логики отдельным Python-сценарием
+- Подготовка к разворачиванию как локально, так и в Docker/Portainer за reverse proxy
 
 ## Что умеет проект
 
@@ -127,18 +176,33 @@ npm install
 
 ## Быстрый старт
 
-### Запуск клиента и сервера вместе
+<table>
+  <tr>
+    <td valign="top" width="33%">
+      <h3>1. Установить зависимости</h3>
+      <p>Подготовьте Python- и JavaScript-окружение перед первым запуском.</p>
+      <pre lang="powershell">pip install -r requirements.txt
+npm install</pre>
+    </td>
+    <td valign="top" width="33%">
+      <h3>2. Запустить проект</h3>
+      <p>Одна команда поднимает клиент на Vite и backend на FastAPI.</p>
+      <pre lang="powershell">npm run dev</pre>
+    </td>
+    <td valign="top" width="33%">
+      <h3>3. Открыть интерфейс</h3>
+      <p>После запуска стенд, API и Swagger уже готовы к работе.</p>
+      <p><code>http://127.0.0.1:5173</code></p>
+    </td>
+  </tr>
+</table>
 
-```powershell
-npm run dev
-```
+### Что поднимается
 
-Эта команда запускает:
-
-- Vite dev server
+- Vite dev server для клиентской части
 - FastAPI через `uvicorn --reload`
 
-Адреса:
+### Локальные адреса
 
 - клиент: `http://127.0.0.1:5173`
 - backend: `http://127.0.0.1:8000`
