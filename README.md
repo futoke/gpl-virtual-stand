@@ -113,7 +113,15 @@ Backend отвечает за:
 
 ### Внешняя программа управления
 
-Внешний скрипт не встроен в UI и работает как независимый клиент API. Он:
+Внешняя программа управления теперь оформлена как полноценная библиотека для написания пользовательских программ.
+
+Основные части:
+
+- пакет библиотеки [standlib](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/standlib)
+- папка с учебными программами [programs](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/programs)
+- раннер [scripts/run_api_scenario.py](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/scripts/run_api_scenario.py), который запускает выбранную программу
+
+Библиотека позволяет:
 
 - получает состояние через `GET /api/state`
 - выбирает, какие команды отправлять дальше
@@ -122,16 +130,14 @@ Backend отвечает за:
 - запускает объекты на поле
 - проводит объекты по линии
 
-Скрипт:
-
-- [scripts/run_api_scenario.py](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/scripts/run_api_scenario.py)
-
 ## Структура проекта
 
 ```text
 backend/                  FastAPI backend
+programs/                 пользовательские программы управления
 public/                   статические ресурсы Vite
 scripts/                  служебные и сценарные скрипты
+standlib/                 Python-библиотека для сценариев
 src/                      клиентский код
 requirements.txt          Python-зависимости
 package.json              npm-скрипты и JS-зависимости
@@ -560,13 +566,53 @@ http://127.0.0.1:8000/docs
 
 ## Внешний сценарный скрипт
 
-Основной внешний сценарий расположен в:
+В проекте больше нет идеи “одного большого внешнего скрипта”. Вместо этого есть полноценная библиотека `standlib`, поверх которой можно писать маленькие пользовательские программы.
 
-- [scripts/run_api_scenario.py](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/scripts/run_api_scenario.py)
+Ключевые части:
 
-### Идея скрипта
+- библиотека [standlib](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/standlib)
+- папка с программами [programs](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/programs)
+- раннер [scripts/run_api_scenario.py](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/scripts/run_api_scenario.py)
 
-Это демонстрация того, как внешняя управляющая программа может:
+### Идея библиотеки
+
+`standlib` задуман как учебный слой программирования стенда, похожий на “Python-версию G-code”, но с более богатой логикой. Студенту не нужно вручную:
+
+- писать HTTP-запросы к FastAPI
+- разбирать снапшоты состояния
+- реализовывать движение кранов по координатам
+- программировать маршрутизацию по полю
+- повторять логику rotary- и process-блоков
+
+Вместо этого студент пишет короткую программу вида `run(program)`, а библиотека предоставляет готовые команды верхнего уровня.
+
+### Что есть внутри `standlib`
+
+- `standlib.api` с HTTP-клиентом `StandApi`
+- `standlib.routing` с логикой анализа маршрута по полю
+- `standlib.controller` с низкоуровневыми операциями стенда
+- `standlib.program` с учебным классом `StandProgram`
+- `standlib.runner` с загрузкой и запуском пользовательского файла программы
+
+### Какие команды доступны студенту
+
+Через объект `StandProgram` можно использовать, например:
+
+- `ensure_api_mode()`
+- `set_stack_capacity(...)`
+- `randomize_warehouses(...)`
+- `select_io(...)`
+- `select_crane(...)`
+- `move_crane_to(...)`
+- `load_io_from_rack(...)`
+- `launch_from_io(...)`
+- `route_active_object()`
+- `route_many_from_left_to_right(...)`
+- `unload_io_to_rack(...)`
+
+### Что демонстрирует стандартная программа
+
+Готовая учебная программа из `programs/default_transport.py` показывает, как внешняя управляющая логика может:
 
 - читать текущее состояние линии
 - не отправлять объект в пустую ячейку
@@ -576,9 +622,25 @@ http://127.0.0.1:8000/docs
 - управлять кранами
 - переносить объекты между стеллажом, IO и полем
 
-### Что делает сценарий
+### Как выглядит минимальная программа студента
 
-После запуска скрипт:
+Пользовательская программа теперь может быть очень короткой:
+
+```python
+def run(program):
+    program.ensure_api_mode()
+    program.set_stack_capacity(4)
+    program.randomize_warehouses(count_per_side=18)
+    program.load_io_from_rack("left", 4)
+    program.route_many_from_left_to_right(4)
+    program.unload_io_to_rack("right", 4)
+```
+
+Именно так устроена [programs/default_transport.py](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/programs/default_transport.py).
+
+### Что делает стандартная программа по шагам
+
+После запуска стандартная программа:
 
 1. Проверяет, что стенд уже переведен в `api`-режим.
 2. Устанавливает объем зоны загрузки/выгрузки.
@@ -595,22 +657,47 @@ http://127.0.0.1:8000/docs
 ### Запуск сценария
 
 ```powershell
-python scripts/run_api_scenario.py --base-url http://127.0.0.1:8000
+python scripts/run_api_scenario.py --program programs/default_transport.py --base-url http://127.0.0.1:8000
 ```
 
 ### Полезные параметры
 
 ```powershell
-python scripts/run_api_scenario.py --seed 42 --count 4 --process-delay 1.0 --step-delay 0.2
+python scripts/run_api_scenario.py --program programs/default_transport.py --seed 42 --process-delay 1.0 --step-delay 0.2
 ```
 
 Параметры:
 
+- `--program` путь к файлу программы, в котором определена функция `run(program)`
 - `--base-url` адрес FastAPI
 - `--seed` seed для случайной раскладки и выбора выхода rotary
-- `--count` сколько объектов транспортировать
 - `--process-delay` пауза на блоке обработки
 - `--step-delay` задержка между шагами API
+
+### Написание собственного сценария
+
+Если нужен свой алгоритм, студент создает обычный Python-файл в папке `programs/`. Например:
+
+```python
+def run(program):
+    program.ensure_api_mode()
+    program.randomize_warehouses(count_per_side=12, seed=7)
+    program.load_io_from_rack("left", 2)
+
+    for _ in range(2):
+        program.launch_from_io("left")
+        program.route_active_object()
+
+    program.unload_io_to_rack("right", 2)
+```
+
+Потом этот файл можно запустить через раннер:
+
+```powershell
+python scripts/run_api_scenario.py --program programs/my_program.py
+```
+
+Такой подход позволяет студентам писать собственные управляющие программы как небольшие, понятные последовательности команд, а вся сложная логика остается внутри библиотеки.
 
 ## Рекомендуемый сценарий использования
 
@@ -710,7 +797,7 @@ npm run dev
 npm run dev:client
 npm run dev:server
 npm run start:server
-python scripts/run_api_scenario.py
+python scripts/run_api_scenario.py --program programs/default_transport.py
 ```
 
 ## Лицензия и статус
