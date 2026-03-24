@@ -26,6 +26,4 @@ COPY backend ./backend
 COPY scripts ./scripts
 COPY --from=frontend-builder /app/dist ./dist
 
-EXPOSE 8000
-
 CMD ["python", "-m", "uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000"]

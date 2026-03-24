@@ -177,6 +177,8 @@ docker build -t gpl-virtual-stand .
 
 ### Запуск контейнера
 
+Если нужен прямой локальный запуск без reverse proxy:
+
 ```powershell
 docker run --rm -p 8080:8000 gpl-virtual-stand
 ```
@@ -193,6 +195,7 @@ docker run --rm -p 8080:8000 gpl-virtual-stand
 - [docker-compose.yml](/abs/path/c:/Users/ichiro/YandexDisk/work/csr/resresh-courses/2026/ИИ/gpl-virtual-stand/docker-compose.yml)
 
 Это позволяет развернуть приложение в Portainer напрямую из Git-репозитория.
+Текущая конфигурация `docker-compose.yml` не публикует порт наружу и рассчитана на работу за reverse proxy, например `Nginx Proxy Manager`, в общей Docker-сети `proxy-network`.
 
 Порядок действий:
 
@@ -215,6 +218,8 @@ docker-compose.yml
 
 11. Нажмите `Deploy the stack`.
 
+Перед деплоем убедитесь, что внешняя Docker-сеть `proxy-network` уже существует и что к ней подключен ваш reverse proxy.
+
 После этого Portainer:
 
 - скачает код из GitHub
@@ -223,8 +228,16 @@ docker-compose.yml
 
 После развертывания:
 
-- интерфейс будет доступен по адресу `http://<host>:8080`
-- Swagger будет доступен по адресу `http://<host>:8080/docs`
+- контейнер будет доступен внутри сети `proxy-network` по имени `gpl-virtual-stand`
+- в `Nginx Proxy Manager` в качестве upstream нужно указать:
+
+```text
+scheme: http
+host: gpl-virtual-stand
+port: 8000
+```
+
+- внешний адрес и HTTPS уже настраиваются на стороне reverse proxy, например `https://gpl.futoke.ru`
 
 ## Режимы работы стенда
 

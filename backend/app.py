@@ -256,6 +256,23 @@ def discard_active_field_object() -> None:
     APP_STATE["field_object_cell"] = None
 
 
+def discard_runtime_objects() -> None:
+    discard_active_field_object()
+
+    for side in ("left", "right"):
+        for obj_id in APP_STATE["io_stacks"][side]:
+            APP_STATE["objects"].pop(obj_id, None)
+        APP_STATE["io_stacks"][side] = []
+
+        holding_object_id = APP_STATE["cranes"][side]["holding_object_id"]
+        if holding_object_id is not None:
+            APP_STATE["objects"].pop(holding_object_id, None)
+
+        APP_STATE["cranes"][side]["holding_object_id"] = None
+        APP_STATE["cranes"][side]["row"] = 0
+        APP_STATE["cranes"][side]["level"] = 0
+
+
 def crane_at_io_zone(side: str, crane: Dict) -> bool:
     target_row = GRID_ROWS - 1 if side == "left" else 0
     return crane["row"] == target_row and crane["level"] == 0
@@ -462,7 +479,7 @@ def get_state() -> AppStateSnapshot:
 @app.post("/api/mode", response_model=AppStateSnapshot, tags=["state"])
 def set_mode(payload: ModeRequest) -> AppStateSnapshot:
     if payload.edit_mode:
-        discard_active_field_object()
+        discard_runtime_objects()
 
     APP_STATE["edit_mode"] = payload.edit_mode
     return build_snapshot()

@@ -6,6 +6,10 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: gpl-virtual-stand
-    ports:
-      - "8080:8000"
     restart: unless-stopped
+    networks:
+      - proxy-network
+
+networks:
+  proxy-network:
+    external: true
