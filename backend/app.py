@@ -1,8 +1,11 @@
 import random
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 
@@ -166,6 +169,9 @@ app = FastAPI(
     version="1.0.0",
     description="API for remote control of the virtual stand outside edit mode.",
 )
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DIST_DIR = PROJECT_ROOT / "dist"
 
 app.add_middleware(
     CORSMiddleware,
@@ -436,8 +442,10 @@ def healthcheck() -> Dict[str, str]:
     return {"status": "ok"}
 
 
-@app.get("/", tags=["system"])
-def root() -> Dict[str, str]:
+@app.get("/", tags=["system"], include_in_schema=False)
+def root():
+    if DIST_DIR.exists():
+        return FileResponse(DIST_DIR / "index.html")
     return {
         "name": "GPL Virtual Stand API",
         "docs": "/docs",
@@ -535,3 +543,7 @@ def move_field(payload: MoveFieldObjectRequest) -> AppStateSnapshot:
     ensure_not_in_edit_mode()
     move_field_object(payload.direction)
     return build_snapshot()
+
+
+if DIST_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=DIST_DIR / "assets"), name="assets")

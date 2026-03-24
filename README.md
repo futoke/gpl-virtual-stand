@@ -165,6 +165,27 @@ npm run dev:server
 npm run start:server
 ```
 
+## Запуск в Docker
+
+Проект можно развернуть в одном контейнере: внутри образа собирается клиент, а FastAPI раздает и API, и статический `dist`.
+
+### Сборка образа
+
+```powershell
+docker build -t gpl-virtual-stand .
+```
+
+### Запуск контейнера
+
+```powershell
+docker run --rm -p 8000:8000 gpl-virtual-stand
+```
+
+После запуска:
+
+- интерфейс: `http://127.0.0.1:8000`
+- Swagger: `http://127.0.0.1:8000/docs`
+
 ## Режимы работы стенда
 
 У стенда есть два главных режима.
